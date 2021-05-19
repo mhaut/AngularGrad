@@ -23,10 +23,10 @@ from models import *
 import sys 
 sys.path.append('../')
  
-from algorithm.Diffgrad import diffgrad
-from algorithm.tanangulargrad import tanangulargrad
-from algorithm.cosangulargrad import cosangulargrad
-from algorithm.AdaBelief import AdaBelief
+from myoptims.Diffgrad import diffgrad
+from myoptims.tanangulargrad import tanangulargrad
+from myoptims.cosangulargrad import cosangulargrad
+from myoptims.AdaBelief import AdaBelief
 
 import random
 

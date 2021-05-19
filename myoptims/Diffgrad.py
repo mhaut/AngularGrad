@@ -3,7 +3,6 @@ import torch
 from torch.optim.optimizer import Optimizer
 import numpy as np
 import torch.nn as nn
-from .Centralization import centralized_gradient
      
 
 class diffgrad(Optimizer):
@@ -85,8 +84,6 @@ class diffgrad(Optimizer):
 
                 if group['weight_decay'] != 0:
                     grad.add_(group['weight_decay'], p.data)
-                if self.gc_loc:
-                    grad=centralized_gradient(grad,use_gc=self.use_gc,gc_conv_only=self.gc_conv_only)
 
                 # Decay the first and second moment running average coefficient
                 exp_avg.mul_(beta1).add_(1 - beta1, grad)
@@ -109,8 +106,6 @@ class diffgrad(Optimizer):
 
                 #GC operation
                 G_grad=exp_avg/denom
-                if self.gc_loc==False:
-                    G_grad=centralized_gradient(G_grad,use_gc=self.use_gc,gc_conv_only=self.gc_conv_only)
 
                 p.data.add_( G_grad, alpha=-step_size)
 
