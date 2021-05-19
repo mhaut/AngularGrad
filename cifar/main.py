@@ -215,7 +215,6 @@ if __name__ == '__main__':
                                 choices=['sgd', 'rmsprop', 'adam', 'adamw', 'diffgrad', 'adabelief', 'cosangulargrad', 'tanangulargrad'], \
                                 help='dataset (options: sgd, rmsprop, adam, adamw, diffgrad, adabelief, cosangulargrad, tanangulargrad)')
     parser.add_argument('--lr', default=0.01, type=float, help='learning rate')
-    parser.add_argument('--wd', default=0, type=float, help='weight decay')
     parser.add_argument('--manualSeed', default=1111, type=int, help='random seed')
 
     args = parser.parse_args()
