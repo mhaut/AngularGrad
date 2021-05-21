@@ -32,6 +32,12 @@ optimizer = cosangulargrad(net.parameters())
 
 Experiments in the paper:
 
+Analitycal
+```
+cd analitycal/
+python main.py
+```
+
 CIFAR-10/100
 ```
 cd cifar/
