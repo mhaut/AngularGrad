@@ -35,7 +35,6 @@ from myoptims.cosangulargrad import cosangulargrad
 from myoptims.AdaBelief import AdaBelief
 
 
-#python main.py split_mini/ --lr 0.001 --alg diffgrad --model r18 --seed 1111
 
 
 def get_optim(optim_name, learning_rate, net):
@@ -84,7 +83,7 @@ def get_model(modelname):
     return model
 
 
-def get_loaders(bsize):
+def get_loaders(args):
     print('==> Preparing MINI-Imagenet data...')
     traindir = os.path.join(args.data, 'train')
     valdir = os.path.join(args.data, 'val')
@@ -100,7 +99,7 @@ def get_loaders(bsize):
          ]))
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=bsize, shuffle=True,
+        train_dataset, batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=True,drop_last=True)
 
 
@@ -111,7 +110,7 @@ def get_loaders(bsize):
             transforms.ToTensor(),
             normalize,
         ])),
-        batch_size=bsize, shuffle=False,
+        batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
     return train_loader, val_loader
@@ -192,7 +191,7 @@ def main(args):
     optimizer = get_optim(args.alg, args.lr, model)
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=80, gamma=0.1)
     
-    train_loader, val_loader = get_loaders(args.batch_size)
+    train_loader, val_loader = get_loaders(args)
 
 
     best_acc = -1
@@ -228,7 +227,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch_size', default=128, type=int,
                         metavar='N', help='mini-batch size')
 
-    parser.add_argument('--lr', '--learning-rate', default=0.01, type=float,
+    parser.add_argument('--lr', '--learning-rate', default=1e-3, type=float,
                         metavar='LR', help='initial learning rate', dest='lr')
 
     parser.add_argument('data', metavar='DIR', help='path to dataset')
@@ -247,7 +246,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', default=None, type=int,
                         help='seed for initializing training. ')
 
-    parser.add_argument('--model', default='r18', type=str, help='model')
-    parser.add_argument('--alg', default='sgd', type=str, help='optimizer')
+    parser.add_argument('--model', default='r50', type=str, help='model')
+    parser.add_argument('--alg', default='adam', type=str, help='optimizer')
     args = parser.parse_args()
     main(args)

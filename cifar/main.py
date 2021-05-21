@@ -211,10 +211,10 @@ if __name__ == '__main__':
                                 choices=['v16', 'r18', 'r34', 'r50', 'r101', 'rx29', 'dla', 'd121'], \
                                 help='dataset (options: v16, r18, r34, r50, r101, rx29, dla, d121)')
     parser.add_argument('--bs', default=128, type=int, help='batchsize')
-    parser.add_argument('--alg', type=str, default='sgd', \
+    parser.add_argument('--alg', type=str, default='adam', \
                                 choices=['sgd', 'rmsprop', 'adam', 'adamw', 'diffgrad', 'adabelief', 'cosangulargrad', 'tanangulargrad'], \
                                 help='dataset (options: sgd, rmsprop, adam, adamw, diffgrad, adabelief, cosangulargrad, tanangulargrad)')
-    parser.add_argument('--lr', default=0.01, type=float, help='learning rate')
+    parser.add_argument('--lr', default=1e-3, type=float, help='learning rate')
     parser.add_argument('--manualSeed', default=1111, type=int, help='random seed')
 
     args = parser.parse_args()
