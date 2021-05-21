@@ -1,4 +1,4 @@
-# Angulargrad Optimizer
+# AngularGrad Optimizer
 
 This repository contains the oficial implementation for [AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks](https://) in PyTorch.
 
