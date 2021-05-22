@@ -94,7 +94,7 @@ class tanangulargrad(Optimizer):
                         diff = abs(previous_grad - grad)
                         final_tan_theta = tan_theta.clone()
 
-                angular_coeff = torch.tanh(abs(final_tan_theta)) * 0.5 +0.5
+                angular_coeff = torch.tanh(abs(final_tan_theta)) * 0.5 +0.5    # Calculating Angular coefficient
 
                 state['previous_grad'] = grad.clone()
                 state['min'] = min.clone()
