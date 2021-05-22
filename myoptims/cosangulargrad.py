@@ -95,7 +95,7 @@ class cosangulargrad(Optimizer):
                         diff = abs(previous_grad - grad)
                         final_cos_theta = cos_theta.clone()
 
-                angular_coeff = torch.tanh(abs(final_cos_theta)) * 0.5 +0.5
+                angular_coeff = torch.tanh(abs(final_cos_theta)) * 0.5 +0.5     # Calculating Angular coefficient
 
                 state['previous_grad'] = grad.clone()
                 state['min'] = min.clone()
