@@ -9,7 +9,7 @@ If you have questions or suggestions, please feel free to open an issue. Please 
 ```
 @article{roy2021angulargrad,
   title={AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks},
-  author={S.K.Roy, M.E. Paoletti, J.M. Haut, S.R. Dubey, P. Kar, A. Plaza and B. B. Chaudhuri},
+  author={S.K. Roy, M.E. Paoletti, J.M. Haut, S.R. Dubey, P. Kar, A. Plaza and B.B. Chaudhuri},
   journal={arXiv preprint arXiv:},
   year={2021}
 }
