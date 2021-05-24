@@ -1,6 +1,6 @@
 # AngularGrad Optimizer
 
-This repository contains the oficial implementation for [AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks](https://) in PyTorch.
+This repository contains the oficial implementation for [AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks](http://arxiv.org/abs/2105.10190) in PyTorch.
 
 AngularGrad reduces the zig-zag effect in the optimization trajectory. Fluctuations are significantly smoothed, tracing a more direct path towards the minimum of the cost function.
 
@@ -10,7 +10,7 @@ If you have questions or suggestions, please feel free to open an issue. Please 
 @article{roy2021angulargrad,
   title={AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks},
   author={S.K. Roy, M.E. Paoletti, J.M. Haut, S.R. Dubey, P. Kar, A. Plaza and B.B. Chaudhuri},
-  journal={arXiv preprint arXiv:},
+  journal={arXiv preprint arXiv:2105.10190},
   year={2021}
 }
 ```
