@@ -4,6 +4,22 @@ This repository contains the oficial implementation for [AngularGrad: A New Opti
 
 AngularGrad reduces the zig-zag effect in the optimization trajectory. Fluctuations are significantly smoothed, tracing a more direct path towards the minimum of the cost function.
 
+You can import the optimizer as follows:
+```python
+from myoptims.tanangulargrad import tanangulargrad
+from myoptims.cosangulargrad import cosangulargrad
+...
+model = YourModel()
+optimizer = tanangulargrad(model.parameters())
+...
+for input, output in data:
+  optimizer.zero_grad()
+  loss = loss_function(output, model(input))
+  loss.backward()
+  optimizer.step()
+...
+```
+
 
 If you have questions or suggestions, please feel free to open an issue. Please cite as:
 ```
@@ -18,14 +34,6 @@ If you have questions or suggestions, please feel free to open an issue. Please 
 <img src="figs/Rosenbrock.png" width="1000" align="center"> 
 </p>
 
-In PyTorch:
-```
-optimizer = cosangulargrad(params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0)
-<or>
-optimizer = tanangulargrad(params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0)
-Example:
-optimizer = cosangulargrad(net.parameters())
-```
 
 
 ## Experiments
