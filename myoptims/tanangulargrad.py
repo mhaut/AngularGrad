@@ -89,7 +89,7 @@ class tanangulargrad(Optimizer):
                         diff = abs(previous_grad - grad)
                         final_tan_theta = tan_theta.clone()
                 except:
-                    if (ans1[0] == "False"):
+                    if (ans1[0].item() == False):
                         min = angle
                         diff = abs(previous_grad - grad)
                         final_tan_theta = tan_theta.clone()
