@@ -90,7 +90,7 @@ class cosangulargrad(Optimizer):
                         diff = abs(previous_grad - grad)
                         final_cos_theta = cos_theta.clone()
                 except:
-                    if (ans1[0] == "False"):
+                    if (ans1[0].item() == False):
                         min = angle
                         diff = abs(previous_grad - grad)
                         final_cos_theta = cos_theta.clone()
