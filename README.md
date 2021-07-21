@@ -1,6 +1,6 @@
 # AngularGrad Optimizer
 
-This repository contains the oficial implementation for [AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks](http://arxiv.org/abs/2105.10190) in PyTorch.
+This repository contains the official implementation for [AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks](http://arxiv.org/abs/2105.10190) in PyTorch.
 
 AngularGrad reduces the zig-zag effect in the optimization trajectory. Fluctuations are significantly smoothed, tracing a more direct path towards the minimum of the cost function.
 
@@ -46,13 +46,14 @@ If you have questions or suggestions, please feel free to open an issue. Please 
 
 Experiments in the paper:
 
-Analitycal
+**Analytical**
+
 ```
 cd analitycal/
 python main.py
 ```
 
-CIFAR-10/100
+**CIFAR-10/100**
 ```
 cd cifar/
 python main.py --dataset <cifar10/cifar100> --model <r18/r34/.../vgg16/d121> --alg <adam/sgd/.../cosangulargrad/tanangulargrad> --lr <float>
@@ -60,7 +61,7 @@ Example:
 python main.py --dataset cifar10 --model r50 --alg CosAngularGrad --lr 1e-3
 ```
 
-Mini-ImageNet:
+**Mini-ImageNet:**
 ```
 cd mini-imagenet/
 wget URL dataset
@@ -69,7 +70,7 @@ Example:
 python main.py ./split_mini/ --alg CosAngularGrad --model r50 --lr 1e-3
 ```
 
-Fine-Grained:
+**Fine-Grained:**
 ``` 
 cd fine-grained/
 wget URL datasets
