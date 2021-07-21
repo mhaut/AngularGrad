@@ -4,6 +4,12 @@ This repository contains the oficial implementation for [AngularGrad: A New Opti
 
 AngularGrad reduces the zig-zag effect in the optimization trajectory. Fluctuations are significantly smoothed, tracing a more direct path towards the minimum of the cost function.
 
+### Installation
+
+```buildoutcfg
+pip install git+https://github.com/isvogor-foi/AngularGrad
+```
+
 You can import the optimizer as follows:
 ```python
 from myoptims.tanangulargrad import tanangulargrad
@@ -51,7 +57,7 @@ CIFAR-10/100
 cd cifar/
 python main.py --dataset <cifar10/cifar100> --model <r18/r34/.../vgg16/d121> --alg <adam/sgd/.../cosangulargrad/tanangulargrad> --lr <float>
 Example:
-python main.py --dataset cifar10 --model r50 --alg cosangulargrad --lr 1e-3
+python main.py --dataset cifar10 --model r50 --alg CosAngularGrad --lr 1e-3
 ```
 
 Mini-ImageNet:
@@ -60,7 +66,7 @@ cd mini-imagenet/
 wget URL dataset
 python main.py DATADIR --alg <adam/sgd/.../cosangulargrad/tanangulargrad> --lr <float>
 Example:
-python main.py ./split_mini/ --alg cosangulargrad --model r50 --lr 1e-3
+python main.py ./split_mini/ --alg CosAngularGrad --model r50 --lr 1e-3
 ```
 
 Fine-Grained:
