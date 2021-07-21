@@ -7,16 +7,16 @@ AngularGrad reduces the zig-zag effect in the optimization trajectory. Fluctuati
 ### Installation
 
 ```buildoutcfg
-pip install git+https://github.com/isvogor-foi/AngularGrad
+pip install git+https://github.com/mhaut/AngularGrad
 ```
 
 You can import the optimizer as follows:
 ```python
-from myoptims.tanangulargrad import tanangulargrad
-from myoptims.cosangulargrad import cosangulargrad
+from angulargrad.tanangulargrad import TanAngularGrad
+from angulargrad.cosangulargrad import CosAngularGrad
 ...
 model = YourModel()
-optimizer = tanangulargrad(model.parameters())
+optimizer = TanAngularGrad(model.parameters())
 ...
 for input, output in data:
   optimizer.zero_grad()
@@ -36,10 +36,8 @@ If you have questions or suggestions, please feel free to open an issue. Please 
   year={2021}
 }
 ```
-<p align="center">
-<img src="figs/Rosenbrock.png" width="1000" align="center"> 
-</p>
 
+![results](figs/Rosenbrock.png)
 
 
 ## Experiments
