@@ -9,7 +9,7 @@ setuptools.setup(
     author='S.K. Roy, M.E. Paoletti, J.M. Haut, S.R. Dubey, P. Kar, A. Plaza and B.B. Chaudhuri',
     description='Angulargrad - modified for setup by Ivan Svogor',
     url="https://github.com/isvogor-foi/AngularGrad",
-    package_dir={"": "angulargrad"},
+    package_dir={"angulargrad": "angulargrad"},
     packages=setuptools.find_packages(where="angulargrad"),
     python_requires=">=3.6",
 )
