@@ -2,7 +2,8 @@ import math
 import torch
 from torch.optim.optimizer import Optimizer
 
-version_higher = ( torch.__version__ >= "1.5.0" )
+version_higher = (torch.__version__ >= "1.5.0")
+
 
 class AdaBelief(Optimizer):
     r"""Implements AdaBelief algorithm. Modified from Adam in PyTorch
@@ -36,7 +37,7 @@ class AdaBelief(Optimizer):
     """
 
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8,
-                 weight_decay=0, amsgrad=False, weight_decouple = False, fixed_decay=False, rectify = False ):
+                 weight_decay=0, amsgrad=False, weight_decouple=False, fixed_decay=False, rectify=False):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -60,6 +61,7 @@ class AdaBelief(Optimizer):
             print('Rectification enabled in AdaBelief')
         if amsgrad:
             print('AMS enabled in AdaBelief')
+
     def __setstate__(self, state):
         super(AdaBelief, self).__setstate__(state)
         for group in self.param_groups:
@@ -75,15 +77,18 @@ class AdaBelief(Optimizer):
                 state['step'] = 0
                 # Exponential moving average of gradient values
                 state['exp_avg'] = torch.zeros_like(p.data,
-                                   memory_format=torch.preserve_format) if version_higher else torch.zeros_like(p.data)
+                                                    memory_format=torch.preserve_format) if version_higher else torch.zeros_like(
+                    p.data)
 
                 # Exponential moving average of squared gradient values
                 state['exp_avg_var'] = torch.zeros_like(p.data,
-                                    memory_format=torch.preserve_format) if version_higher else torch.zeros_like(p.data)
+                                                        memory_format=torch.preserve_format) if version_higher else torch.zeros_like(
+                    p.data)
                 if amsgrad:
                     # Maintains max of all exp. moving avg. of sq. grad. values
                     state['max_exp_avg_var'] = torch.zeros_like(p.data,
-                                    memory_format=torch.preserve_format) if version_higher else torch.zeros_like(p.data)
+                                                                memory_format=torch.preserve_format) if version_higher else torch.zeros_like(
+                        p.data)
 
     def step(self, closure=None):
         """Performs a single optimization step.
@@ -102,11 +107,12 @@ class AdaBelief(Optimizer):
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
-                    raise RuntimeError('AdaBelief does not support sparse gradients, please consider SparseAdam instead')
+                    raise RuntimeError(
+                        'AdaBelief does not support sparse gradients, please consider SparseAdam instead')
                 amsgrad = group['amsgrad']
 
                 state = self.state[p]
-               
+
                 beta1, beta2 = group['betas']
 
                 # State initialization
@@ -115,14 +121,17 @@ class AdaBelief(Optimizer):
                     state['step'] = 0
                     # Exponential moving average of gradient values
                     state['exp_avg'] = torch.zeros_like(p.data,
-                                    memory_format=torch.preserve_format) if version_higher else torch.zeros_like(p.data)
+                                                        memory_format=torch.preserve_format) if version_higher else torch.zeros_like(
+                        p.data)
                     # Exponential moving average of squared gradient values
                     state['exp_avg_var'] = torch.zeros_like(p.data,
-                                    memory_format=torch.preserve_format) if version_higher else torch.zeros_like(p.data)
+                                                            memory_format=torch.preserve_format) if version_higher else torch.zeros_like(
+                        p.data)
                     if amsgrad:
                         # Maintains max of all exp. moving avg. of sq. grad. values
                         state['max_exp_avg_var'] = torch.zeros_like(p.data,
-                                    memory_format=torch.preserve_format) if version_higher else torch.zeros_like(p.data)
+                                                                    memory_format=torch.preserve_format) if version_higher else torch.zeros_like(
+                            p.data)
 
                 # get current state variable
                 exp_avg, exp_avg_var = state['exp_avg'], state['exp_avg_var']
@@ -161,12 +170,12 @@ class AdaBelief(Optimizer):
                     step_size = group['lr'] / bias_correction1
                     p.data.addcdiv_(-step_size, exp_avg, denom)
 
-                else:# Rectified update
+                else:  # Rectified update
                     # calculate rho_t
                     state['rho_t'] = state['rho_inf'] - 2 * state['step'] * beta2 ** state['step'] / (
                             1.0 - beta2 ** state['step'])
 
-                    if state['rho_t'] > 4: # perform Adam style update if variance is small
+                    if state['rho_t'] > 4:  # perform Adam style update if variance is small
                         rho_inf, rho_t = state['rho_inf'], state['rho_t']
                         rt = (rho_t - 4.0) * (rho_t - 2.0) * rho_inf / (rho_inf - 4.0) / (rho_inf - 2.0) / rho_t
                         rt = math.sqrt(rt)
@@ -175,9 +184,7 @@ class AdaBelief(Optimizer):
 
                         p.data.addcdiv_(-step_size, exp_avg, denom)
 
-                    else: # perform SGD style update
-                        p.data.add_( -group['lr'], exp_avg)
+                    else:  # perform SGD style update
+                        p.data.add_(-group['lr'], exp_avg)
 
         return loss
-
-

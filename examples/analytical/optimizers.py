@@ -1,5 +1,4 @@
 import numpy as np
-import math as mt
 
 class Adam(object):
     def __init__(self, lrn_rate, beta1, beta2, eps):

@@ -1,11 +1,9 @@
 import math
 import torch
 from torch.optim.optimizer import Optimizer
-import numpy as np
-import torch.nn as nn
 
 
-class tanangulargrad(Optimizer):
+class TanAngularGrad(Optimizer):
 
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0):
         if not 0.0 <= lr:
@@ -17,10 +15,10 @@ class tanangulargrad(Optimizer):
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
-        super(tanangulargrad, self).__init__(params, defaults)
+        super(TanAngularGrad, self).__init__(params, defaults)
 
     def __setstate__(self, state):
-        super(tanangulargrad, self).__setstate__(state)
+        super(TanAngularGrad, self).__setstate__(state)
 
     def step(self, closure=None):
         """Performs a single optimization step.
@@ -39,7 +37,7 @@ class tanangulargrad(Optimizer):
                 grad = p.grad.data
                 if grad.is_sparse:
                     raise RuntimeError(
-                        'tanangulargrad does not support sparse gradients, please consider SparseAdam instead')
+                        'TanAngularGrad does not support sparse gradients, please consider SparseAdam instead')
 
                 state = self.state[p]
 
@@ -84,17 +82,17 @@ class tanangulargrad(Optimizer):
                 ans1, count = torch.unique(ans, return_counts=True)
 
                 try:
-                    if (count[1] < count[0]):
+                    if count[1] < count[0]:
                         min = angle
                         diff = abs(previous_grad - grad)
                         final_tan_theta = tan_theta.clone()
                 except:
-                    if (ans1[0].item() == False):
+                    if ans1[0].item() == False:
                         min = angle
                         diff = abs(previous_grad - grad)
                         final_tan_theta = tan_theta.clone()
 
-                angular_coeff = torch.tanh(abs(final_tan_theta)) * 0.5 +0.5    # Calculating Angular coefficient
+                angular_coeff = torch.tanh(abs(final_tan_theta)) * 0.5 + 0.5  # Calculating Angular coefficient
 
                 state['previous_grad'] = grad.clone()
                 state['min'] = min.clone()
