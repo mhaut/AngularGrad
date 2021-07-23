@@ -5,31 +5,9 @@ import numpy as np
 import torch.nn as nn
 
 
-class DiffGrad(Optimizer):
-    r"""Implements diffGrad algorithm. It is modified from the pytorch implementation of Adam.
-    It has been proposed in `diffGrad: An Optimization Method for Convolutional Neural Networks`_.
-    Arguments:
-        params (iterable): iterable of parameters to optimize or dicts defining
-            parameter groups
-        lr (float, optional): learning rate (default: 1e-3)
-        betas (Tuple[float, float], optional): coefficients used for computing
-            running averages of gradient and its square (default: (0.9, 0.999))
-        eps (float, optional): term added to the denominator to improve
-            numerical stability (default: 1e-8)
-        weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
-        amsgrad (boolean, optional): whether to use the AMSGrad variant of this
-            algorithm from the paper `On the Convergence of Adam and Beyond`_
-            (default: False)
-    .. _diffGrad: An Optimization Method for Convolutional Neural Networks:
-        https://arxiv.org/abs/1909.11015
-    .. _Adam\: A Method for Stochastic Optimization:
-        https://arxiv.org/abs/1412.6980
-    .. _On the Convergence of Adam and Beyond:
-        https://openreview.net/forum?id=ryQu7f-RZ
-    """
+class cosangulargrad(Optimizer):
 
-    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0
-                 , use_gc=False, gc_conv_only=False, gc_loc=False):
+    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -39,13 +17,10 @@ class DiffGrad(Optimizer):
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
-        super(DiffGrad, self).__init__(params, defaults)
-        self.gc_loc = gc_loc
-        self.use_gc = use_gc
-        self.gc_conv_only = gc_conv_only
+        super(cosangulargrad, self).__init__(params, defaults)
 
     def __setstate__(self, state):
-        super(DiffGrad, self).__setstate__(state)
+        super(cosangulargrad, self).__setstate__(state)
 
     def step(self, closure=None):
         """Performs a single optimization step.
@@ -63,7 +38,8 @@ class DiffGrad(Optimizer):
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
-                    raise RuntimeError('diffGrad does not support sparse gradients, please consider SparseAdam instead')
+                    raise RuntimeError(
+                        'cosangulargrad does not support sparse gradients, please consider SparseAdam instead')
 
                 state = self.state[p]
 
@@ -76,8 +52,16 @@ class DiffGrad(Optimizer):
                     state['exp_avg_sq'] = torch.zeros_like(p.data)
                     # Previous gradient
                     state['previous_grad'] = torch.zeros_like(p.data)
+                    # temporary minimum value for comparison
+                    state['min'] = torch.zeros_like(p.data)
+                    # temporary difference between gradients for comparison
+                    state['diff'] = torch.zeros_like(p.data)
+                    # final cos value to be used
+                    state['final_cos_theta'] = torch.zeros_like(p.data)
 
-                exp_avg, exp_avg_sq, previous_grad = state['exp_avg'], state['exp_avg_sq'], state['previous_grad']
+                exp_avg, exp_avg_sq, previous_grad, min, diff, final_cos_theta = state['exp_avg'], state['exp_avg_sq'], \
+                                                                                 state['previous_grad'], state['min'], \
+                                                                                 state['diff'], state['final_cos_theta']
                 beta1, beta2 = group['betas']
 
                 state['step'] += 1
@@ -93,21 +77,36 @@ class DiffGrad(Optimizer):
                 bias_correction1 = 1 - beta1 ** state['step']
                 bias_correction2 = 1 - beta2 ** state['step']
 
-                # compute DiffGrad coefficient (dfc)
-                diff = abs(previous_grad - grad)
-                dfc = 1. / (1. + torch.exp(-diff))
-                # state['previous_grad'] = grad %used in paper but has the bug that previous grad is
-                # overwritten with grad and diff becomes always zero. Fixed in the next line.
-                state['previous_grad'] = grad.clone()
+                tan_theta = abs((previous_grad - grad) / (1 + previous_grad * grad))
+                cos_theta = 1 / torch.sqrt(1 + torch.square(tan_theta))
 
-                # update momentum with dfc
-                exp_avg1 = exp_avg * dfc
+                angle = torch.atan(tan_theta) * (180 / 3.141592653589793238)
+                ans = torch.gt(angle, min)
+                ans1, count = torch.unique(ans, return_counts=True)
+
+                try:
+                    if (count[1] < count[0]):
+                        min = angle
+                        diff = abs(previous_grad - grad)
+                        final_cos_theta = cos_theta.clone()
+                except:
+                    if (ans1[0].item() == False):
+                        min = angle
+                        diff = abs(previous_grad - grad)
+                        final_cos_theta = cos_theta.clone()
+
+                angular_coeff = torch.tanh(abs(final_cos_theta)) * 0.5 +0.5     # Calculating Angular coefficient
+
+                state['previous_grad'] = grad.clone()
+                state['min'] = min.clone()
+                state['diff'] = diff.clone()
+                state['final_cos_theta'] = final_cos_theta.clone()
+
+                # update momentum with angular_coeff
+                exp_avg1 = exp_avg * angular_coeff
 
                 step_size = group['lr'] * math.sqrt(bias_correction2) / bias_correction1
 
-                # GC operation
-                G_grad = exp_avg / denom
-
-                p.data.add_(G_grad, alpha=-step_size)
+                p.data.addcdiv_(-step_size, exp_avg1, denom)
 
         return loss

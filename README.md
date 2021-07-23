@@ -1,22 +1,16 @@
 # AngularGrad Optimizer
 
-This repository contains the official implementation for [AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks](http://arxiv.org/abs/2105.10190) in PyTorch.
+This repository contains the oficial implementation for [AngularGrad: A New Optimization Technique for Angular Convergence of Convolutional Neural Networks](http://arxiv.org/abs/2105.10190) in PyTorch.
 
 AngularGrad reduces the zig-zag effect in the optimization trajectory. Fluctuations are significantly smoothed, tracing a more direct path towards the minimum of the cost function.
 
-### Installation
-
-```buildoutcfg
-pip install git+https://github.com/mhaut/AngularGrad
-```
-
 You can import the optimizer as follows:
 ```python
-from angulargrad.tanangulargrad import TanAngularGrad
-from angulargrad.cosangulargrad import CosAngularGrad
+from myoptims.tanangulargrad import tanangulargrad
+from myoptims.cosangulargrad import cosangulargrad
 ...
 model = YourModel()
-optimizer = TanAngularGrad(model.parameters())
+optimizer = tanangulargrad(model.parameters())
 ...
 for input, output in data:
   optimizer.zero_grad()
@@ -36,39 +30,40 @@ If you have questions or suggestions, please feel free to open an issue. Please 
   year={2021}
 }
 ```
+<p align="center">
+<img src="figs/Rosenbrock.png" width="1000" align="center"> 
+</p>
 
-![results](figs/Rosenbrock.png)
 
 
 ## Experiments
 
 Experiments in the paper:
 
-**Analytical**
-
+Analitycal
 ```
 cd analitycal/
 python main.py
 ```
 
-**CIFAR-10/100**
+CIFAR-10/100
 ```
 cd cifar/
 python main.py --dataset <cifar10/cifar100> --model <r18/r34/.../vgg16/d121> --alg <adam/sgd/.../cosangulargrad/tanangulargrad> --lr <float>
 Example:
-python main.py --dataset cifar10 --model r50 --alg CosAngularGrad --lr 1e-3
+python main.py --dataset cifar10 --model r50 --alg cosangulargrad --lr 1e-3
 ```
 
-**Mini-ImageNet:**
+Mini-ImageNet:
 ```
 cd mini-imagenet/
 wget URL dataset
 python main.py DATADIR --alg <adam/sgd/.../cosangulargrad/tanangulargrad> --lr <float>
 Example:
-python main.py ./split_mini/ --alg CosAngularGrad --model r50 --lr 1e-3
+python main.py ./split_mini/ --alg cosangulargrad --model r50 --lr 1e-3
 ```
 
-**Fine-Grained:**
+Fine-Grained:
 ``` 
 cd fine-grained/
 wget URL datasets

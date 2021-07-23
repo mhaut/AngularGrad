@@ -1,49 +1,51 @@
 import argparse
 import os
 import random
+import shutil
 import time
+import warnings
+import sys
 import torch
 import torch.nn as nn
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
+import torch.distributed as dist
+#import torch.optim
 import torch.optim as optim
+import torch.multiprocessing as mp
 import torch.utils.data
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
-
+import torchvision.models as models
 from models.resnet_ws import l_resnet50, l_resnet18, l_resnet101
 
 import torchvision.models as models
 import math
+import numpy as np
 from torch.optim import lr_scheduler
 
-import os, sys
 
-sys.path.append('../../../AngularGrad')
-from angulargrad.diffgrad import DiffGrad
-from angulargrad.tanangulargrad import TanAngularGrad
-from angulargrad.cosangulargrad import CosAngularGrad
-from angulargrad.adabelief import AdaBelief
+import sys 
+sys.path.append('../')
+ 
+from myoptims.Diffgrad import diffgrad
+from myoptims.tanangulargrad import tanangulargrad
+from myoptims.cosangulargrad import cosangulargrad
+from myoptims.AdaBelief import AdaBelief
+
+
+
 
 def get_optim(optim_name, learning_rate, net):
-    optimizer = None
-    if optim_name == 'sgd':
-        optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
-    elif optim_name == 'rmsprop':
-        optimizer = optim.RMSprop(net.parameters(), lr=learning_rate)
-    elif optim_name == 'adam':
-        optimizer = optim.Adam(net.parameters(), lr=learning_rate)
-    elif optim_name == 'adamw':
-        optimizer = optim.AdamW(net.parameters(), lr=learning_rate)
-    elif optim_name == 'DiffGrad':
-        optimizer = DiffGrad(net.parameters(), lr=learning_rate)
-    elif optim_name == 'AdaBelief':
-        optimizer = AdaBelief(net.parameters(), lr=learning_rate)
-    elif optim_name == 'CosAngularGrad':
-        optimizer = CosAngularGrad(net.parameters(), lr=learning_rate)
-    elif optim_name == 'TanAngularGrad':
-        optimizer = TanAngularGrad(net.parameters(), lr=learning_rate)
+    if   optim_name == 'sgd':            optimizer = optim.SGD(     net.parameters(), lr=learning_rate, momentum=0.9)
+    elif optim_name == 'rmsprop':        optimizer = optim.RMSprop( net.parameters(), lr=learning_rate)
+    elif optim_name == 'adam':           optimizer = optim.Adam(    net.parameters(), lr=learning_rate)
+    elif optim_name == 'adamw':          optimizer = optim.AdamW(   net.parameters(), lr=learning_rate)
+    elif optim_name == 'diffgrad':       optimizer = diffgrad(      net.parameters(), lr=learning_rate)
+    elif optim_name == 'adabelief':      optimizer = AdaBelief(     net.parameters(), lr=learning_rate)
+    elif optim_name == 'cosangulargrad': optimizer = cosangulargrad(net.parameters(), lr=learning_rate)
+    elif optim_name == 'tanangulargrad': optimizer = tanangulargrad(net.parameters(), lr=learning_rate)
     else:
         print('==> Optimizer not found...')
         exit()
@@ -52,40 +54,39 @@ def get_optim(optim_name, learning_rate, net):
 
 def get_model(modelname):
     # create model
-    model = None
-    num_classes = 100
-    if modelname == 'r18':
+    num_classes=100
+    if modelname=='r18':
         model = models.resnet18()
         model.fc = nn.Linear(in_features=512, out_features=num_classes, bias=True)
-    elif modelname == 'r50':
+    elif modelname=='r50':
         model = models.resnet50()
         model.fc = nn.Linear(in_features=2048, out_features=num_classes, bias=True)
-    elif modelname == 'r101':
+    elif modelname=='r101':
         model = models.resnet101()
         model.fc = nn.Linear(in_features=2048, out_features=num_classes, bias=True)
-    elif modelname == 'r18ws':
-        model = l_resnet18(num_classes=num_classes)
-    elif modelname == 'r50ws':
-        model = l_resnet50(num_classes=num_classes)
-    elif modelname == 'r101ws':
-        model = l_resnet101(num_classes=num_classes)
+    elif modelname=='r18ws':
+      model = l_resnet18(num_classes=num_classes)
+    elif modelname=='r50ws':
+      model = l_resnet50(num_classes=num_classes)
+    elif modelname=='r101ws':
+      model = l_resnet101(num_classes=num_classes)
     else:
         print('==> Network not found...')
         exit()
     for m in model.modules():
-        if isinstance(m, nn.Conv2d):
-            n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-            m.weight.data.normal_(0, math.sqrt(2. / n))
-        elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.GroupNorm):
-            m.weight.data.uniform_()
-            m.bias.data.zero_()
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.GroupNorm):
+                m.weight.data.uniform_()
+                m.bias.data.zero_()
     return model
 
 
-def get_loaders(__args):
+def get_loaders(args):
     print('==> Preparing MINI-Imagenet data...')
-    traindir = os.path.join(__args.data, 'train')
-    valdir = os.path.join(__args.data, 'val')
+    traindir = os.path.join(args.data, 'train')
+    valdir = os.path.join(args.data, 'val')
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
     train_dataset = datasets.ImageFolder(
@@ -95,11 +96,12 @@ def get_loaders(__args):
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
-        ]))
+         ]))
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=__args.batch_size, shuffle=True,
-        num_workers=__args.workers, pin_memory=True, drop_last=True)
+        train_dataset, batch_size=args.batch_size, shuffle=True,
+        num_workers=args.workers, pin_memory=True,drop_last=True)
+
 
     val_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(valdir, transforms.Compose([
@@ -108,10 +110,11 @@ def get_loaders(__args):
             transforms.ToTensor(),
             normalize,
         ])),
-        batch_size=__args.batch_size, shuffle=False,
-        num_workers=__args.workers, pin_memory=True)
+        batch_size=args.batch_size, shuffle=False,
+        num_workers=args.workers, pin_memory=True)
 
     return train_loader, val_loader
+
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -135,9 +138,9 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
         loss.backward()
         optimizer.step()
 
-    print('Training: Loss: {:.4f} | Acc: {:.4f}'.format(train_loss / (batch_idx + 1), 100. * correct / total))
-    acc = 100. * correct / total
-    return acc, train_loss / (batch_idx + 1)
+    print('Training: Loss: {:.4f} | Acc: {:.4f}'.format(train_loss/(batch_idx+1),100.*correct/total))
+    acc=100.*correct/total
+    return acc, train_loss/(batch_idx+1)
 
 
 def validate(val_loader, model, criterion, args):
@@ -158,16 +161,16 @@ def validate(val_loader, model, criterion, args):
             _, predicted = output.max(1)
             total += target.size(0)
             correct += predicted.eq(target).sum().item()
-            val_loss += loss.item()
-        acc = 100. * correct / total
-        print('Testing: Loss: {:.4f} | Acc: {:.4f}'.format(val_loss / (batch_idx + 1), acc))
-
-    return acc, val_loss / (batch_idx + 1)
+            val_loss +=loss.item()
+        acc = 100.*correct/total
+        print('Testing: Loss: {:.4f} | Acc: {:.4f}'.format(val_loss/(batch_idx+1), acc))
+ 
+    return acc, val_loss/(batch_idx+1)
 
 
 def main(args):
     args.arch = args.model
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+    os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
     # Random seed
     if args.seed is None:
@@ -187,8 +190,9 @@ def main(args):
     criterion = nn.CrossEntropyLoss()
     optimizer = get_optim(args.alg, args.lr, model)
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=80, gamma=0.1)
-
+    
     train_loader, val_loader = get_loaders(args)
+
 
     best_acc = -1
     for epoch in range(args.start_epoch, args.epochs):
@@ -210,10 +214,13 @@ def main(args):
     print('Best Acc: {:.2f}'.format(best_acc))
 
 
+
+
+
 if __name__ == '__main__':
     model_names = sorted(name for name in models.__dict__
-                         if name.islower() and not name.startswith("__")
-                         and callable(models.__dict__[name]))
+        if name.islower() and not name.startswith("__")
+        and callable(models.__dict__[name]))
 
     parser = argparse.ArgumentParser(description='PyTorch Mini-ImageNet Training')
 
